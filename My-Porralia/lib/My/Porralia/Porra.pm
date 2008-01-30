@@ -34,7 +34,7 @@ sub new {
 sub update_conf {
   my $self = shift;
   my $conf = {};
-  for my $k ( qw( id nombre opcioneos pregunta ) ) {
+  for my $k ( qw( id nombre opciones pregunta ) ) {
     $conf->{$k} = $self->{$k};
   }
   DumpFile( $self->{'_conf_file'}, $conf );

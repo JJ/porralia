@@ -20,7 +20,7 @@ use version; our $VERSION = qv('0.0.3');
 # Module implementation here
 sub new {
   my $class = shift;
-  my $conf_file = shift || '/home/jmerelo/progs/perl/twitter/conf.yaml';
+  my $conf_file = shift || 'conf.yaml';
   my $conf = LoadFile($conf_file) || carp "No puedo abrir $conf_file\n";
 
   $conf->{'_conf_file'} = $conf_file;
