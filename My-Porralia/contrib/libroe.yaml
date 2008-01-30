@@ -1,0 +1,7 @@
+--- !!perl/hash:My::Porralia::Porra
+id: 
+nombre: prueba
+opciones:
+  - \b[Ss]i\b
+  - \b[Nn]o\b
+pregunta: Does this work
