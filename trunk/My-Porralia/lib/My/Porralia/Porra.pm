@@ -24,27 +24,39 @@ sub new {
   my $class = shift;
   my $new_poll_file = shift || carp "Falta fichero configuración\n";
   my $new_poll = LoadFile( $new_poll_file )  || carp "No puedo abrir $new_poll_file\n";
-  
   my $porralia = shift || My::Porralia->new();
-  my $post = shift || 'Post'; #Object without posting
-
   bless $new_poll, $class;
-
-  if ( $post eq 'Post' ) {
-      my $new_status = "Nueva porra: ".$new_poll->{'pregunta'}."?";
-      my $result = $porralia->update_status($new_status);
-      
-      if ( $result ) {
-	  my ($poll_code) = ($new_poll_file =~ /([^\.]+).yaml/ );
-	  $porralia->{'current_poll'} = $poll_code;
-	  $porralia->update_conf();
-	  
-	  $new_poll->{'id'} = $result->{'id'};
-	  DumpFile( $new_poll_file, $new_poll );
-      }
-  }
   $new_poll->{'_porralia'} = $porralia;
+  $new_poll->{'_conf_file'} = $new_poll_file;
   return $new_poll;
+}
+
+sub update_conf {
+  my $self = shift;
+  my $conf = {};
+  for my $k ( qw( id nombre opcioneos pregunta ) ) {
+    $conf->{$k} = $self->{$k};
+  }
+  DumpFile( $self->{'_conf_file'}, $conf );
+}
+
+sub post_poll {
+  my $self = shift;
+  my $porralia = $self->{'_porralia'};
+  my $new_status = "Nueva porra: ".$self->{'pregunta'}."?";
+  my $result = $porralia->update_status($new_status);
+  
+  if ( $result ) {
+    my ($poll_code) = ($self->{'_conf_file'} =~ /([^\.]+).yaml/ );
+    $porralia->{'current_poll'} = $poll_code;
+    $porralia->update_conf();
+    
+    $self->{'id'} = $result->{'id'};
+    $self->update_conf();
+    return $result;
+  } else {
+    return -1 ;
+  }
 }
 
 sub crea_post {
