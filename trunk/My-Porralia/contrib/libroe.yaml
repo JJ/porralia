@@ -1,6 +1,6 @@
 --- !!perl/hash:My::Porralia::Porra
-id: 
-nombre: prueba
+id: 999
+nombre: libroe
 opciones:
   - \b[Ss]i\b
   - \b[Nn]o\b
