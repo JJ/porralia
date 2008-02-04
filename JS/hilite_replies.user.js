@@ -11,7 +11,6 @@ var whoami = /com\/(\w+)/.exec(whoami_url.stringValue);
 var user = whoami[1];
 var posts = document.getElementsByTagName('td');
 var at = "@"+whoami[1];
-alert(at);
 var whoami_re = new RegExp(at, "i");
   
 var content ='';
