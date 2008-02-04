@@ -16,6 +16,8 @@ use version; our $VERSION = qv('0.0.3');
 #  use Perl6::Slurp;
 #  use Perl6::Say;
 
+our $client_name = 'Net::Twitter + My::Porralia';
+our $client_url = "http://porralia.blogalia.com";
 
 # Module implementation here
 sub new {
@@ -29,16 +31,20 @@ sub new {
     .$conf->{'current_poll'}."_results.yaml";
   $conf->{'_last_status_filename'} =  $conf->{'basedir'}.'/poll_results.dat';
   my $twitter = Net::Twitter->new(username=>$conf->{'username'},
-				  password=>$conf->{'password'} );
+				  password=>$conf->{'password'},
+				  clientname => $client_name,
+				  clienturl => $client_url,
+				  clientver => $VERSION
+				  );
   bless $conf, $class;
   $conf->{'_twitter'} = $twitter;
 
   # Cargar followers conocidos 
-  my $followers_hash;
+  my %followers_hash;
   if ( -f $conf->{'_followers'} ) {
-    $followers_hash = LoadFile($conf->{'_followers'});
+    %followers_hash = LoadFile($conf->{'_followers'});
   }
-  $conf->{'_known_followers'} = $followers_hash;
+  $conf->{'_known_followers'} = \%followers_hash;
   return $conf;
 
 }
@@ -51,7 +57,7 @@ sub known_followers {
 sub followers {
   my $self = shift;
   my $followers = $self->{'_twitter'}->followers();
-  if (!@$followers ) {
+  if (!$followers ) {
     carp "Algún problema con twitter\n";
   }
   my %followers_hash;
