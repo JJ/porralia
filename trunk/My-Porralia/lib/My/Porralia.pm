@@ -17,6 +17,9 @@ use version; our $VERSION = qv('0.0.3');
 #  use Perl6::Say;
 use My::Porralia::Porra; 
 
+our $client_name = 'Net::Twitter + My::Porralia';
+our $client_url = "http://porralia.blogalia.com";
+
 # Module implementation here
 sub new {
   my $class = shift;
