@@ -7,6 +7,8 @@ use Carp;
 use Net::Twitter;
 use YAML qw(LoadFile DumpFile);
 use CGI qw(:standard);
+use HTML::Entities;
+use URI::Escape;
 
 use My::Porralia;
 
@@ -62,30 +64,77 @@ sub post_poll {
 sub crea_post {
     my $self = shift;
     
-    my $post = { titulo => "&iquest;".$self->{'pregunta'}."?"};
+    my $post = { titulo => encode_entities("¿".$self->{'pregunta'})."?"};
     my $contenido = a( { -href => "http://twitter.com/"
 			     .$self->{'_porralia'}->{'username'}."/"
 			     .$self->{'id'} }, 
 		       "Pregunta: ".$post->{'titulo'} );
     #Abrir fichero
-    my %resultados = LoadFile($self->{'nombre'}."_results.yaml");
-    my $chart = 'http://chart.apis.google.com/chart?cht=p3&chs=360x200&chd=t:';
-    my @leyenda;
-    my @porcentajes;
+    my %resultados = map( encode_entities($_), %{$self->resultados()});
     my $total;
     map( $total += $resultados{$_}, keys %resultados );
+    my $chart = chartify( \%resultados, $total );
+    my @leyenda;
+    my @porcentajes;
     for my $k (keys %resultados ) {
 	my $porcentaje = $resultados{$k}/$total;
-	push( @porcentajes, $porcentaje );
-	push( @leyenda, "$k: $porcentaje" );
+	push( @leyenda, encode_entities($k).": $porcentaje" );
     }
     autoEscape(0);
-    my $img = img( { -src => $chart.join(",", @porcentajes)."&chl=".join("|", keys %resultados),
+    my $img = img( { -src => $chart ,
 		     -alt => join(" - ", @leyenda ) } );
-    $contenido .= p( $img );
+    $contenido .= xoxify( \%resultados)."\n".p( $img );
     $post->{'contenido'} = $contenido;
     return $post;
 		 
+}
+
+sub xoxify {
+  my $hashref = shift;
+  my $result = ol( { -class => 'xoxo' },
+		   map( li(dl( dt( $_ )."\n\t".dd( $hashref->{$_})."\n"))."\n", keys %$hashref ) )."\n"  ;
+  return $result;
+}
+
+sub chartify {
+  my $hashref = shift || carp "Necesito hash";
+  my $total = shift || carp "Necesito total";
+  my %resultados = %$hashref;
+  my $width = shift || 400;
+  my $height = shift || 200;
+  my @porcentajes;
+  my $chart = "http://chart.apis.google.com/chart?cht=p3&chs=$width"."x$height&chd=t:";
+  my @keys;
+  for my $k (keys %resultados ) {
+    my $porcentaje = $resultados{$k}/$total;
+    push( @porcentajes, sprintf("%.2f", $porcentaje) );
+    my $new_k = decode_entities($k);
+    utf8::encode($new_k);
+    push @keys, uri_escape($new_k);
+  }
+
+  return $chart.join(",", @porcentajes)."&chl=".join("|", @keys)
+}
+
+sub chart {
+  my $self = shift;
+  my $width = shift || 400;
+  my $height = shift || 200;
+  my %resultados = %{$self->resultados()};
+  my $total;
+  map( $total += $resultados{$_}, keys %resultados );
+  autoEscape(0);
+  my $chart =  chartify(\%resultados, $total, $width, $height );
+  my $img = img( { -src => $chart ,
+		   -alt => join(" - ", %resultados ),
+		 -style => "vertical-align:middle" } );
+  return $img;
+}
+
+sub resultados {
+  my $self = shift;
+  my %resultados = LoadFile($self->{'_porralia'}->{'basedir'}."/".$self->{'nombre'}."_results.yaml");
+  return \%resultados;
 }
 
 1; # Magic true value required at end of module
