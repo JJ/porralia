@@ -15,9 +15,7 @@ use version; our $VERSION = qv('0.0.3');
 #  use Perl6::Export;
 #  use Perl6::Slurp;
 #  use Perl6::Say;
-
-our $client_name = 'Net::Twitter + My::Porralia';
-our $client_url = "http://porralia.blogalia.com";
+use My::Porralia::Porra; 
 
 # Module implementation here
 sub new {
@@ -93,6 +91,12 @@ sub update_conf {
     $conf->{$k} = $self->{$k};
   }
   DumpFile( $self->{'_conf_file'}, $conf );
+}
+
+sub porra {
+  my $self = shift;
+  my $new_poll_file = $self->{'basedir'}."/".$self->{'current_poll'}.".yaml";
+  return My::Porralia::Porra->new( $new_poll_file, $self );
 }
 
 1; # Magic true value required at end of module
