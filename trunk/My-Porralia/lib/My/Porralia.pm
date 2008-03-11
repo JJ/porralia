@@ -40,20 +40,35 @@ sub new {
   bless $conf, $class;
   $conf->{'_twitter'} = $twitter;
 
-  # Cargar followers conocidos 
-  my %followers_hash;
-  if ( -f $conf->{'_followers'} ) {
-    %followers_hash = LoadFile($conf->{'_followers'});
-  }
-  $conf->{'_known_followers'} = \%followers_hash;
   return $conf;
 
 }
 
 sub known_followers {
   my $self = shift;
+  # Cargar followers conocidos 
+  my %followers_hash;
+  if ( -f $self->{'_followers'} ) {
+      %followers_hash = LoadFile($self->{'_followers'});
+  }
+  $self->{'_known_followers'} = \%followers_hash;
+  
   return $self->{'_known_followers'};
 }
+
+sub following {
+  my $self = shift;
+  my $following = $self->{'_twitter'}->following();
+  if (!$following ) {
+    carp "Algún problema con twitter\n";
+  }
+  my %following_hash;
+  for (@$following ) {
+    $following_hash{$_->{'id'}}=1;
+  }
+  return \%following_hash;
+}
+
 
 sub followers {
   my $self = shift;
